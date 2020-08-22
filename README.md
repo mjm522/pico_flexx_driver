@@ -1,7 +1,5 @@
 # PMD CamBoard pico flexx ROS2 Driver
 
-![pixo_flexx_ros2](https://ai.uni-bremen.de/wiki/_media/software/pico_flexx_ros.png)
-
 This package was ported to ROS2 from the ROS1 package [here](https://github.com/code-iai/pico_flexx_driver).
 
 ## Dependencies
