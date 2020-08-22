@@ -4,16 +4,6 @@
 
 This package was ported to ROS2 from the ROS1 package [here](https://github.com/code-iai/pico_flexx_driver).
 
-## Table of contents
-- [Description](#description)
-- [Dependencies](#dependencies)
-- [Install](#install)
-- [Usage](#usage)
-- [Troubleshooting](#troubleshooting)
-
-## Description
-This package is a ROS2 interface to the [CamBoard pico flexx](http://www.pmdtec.com/picoflexx/) from pmd.
-
 ## Dependencies
 
 - Ubuntu 20.04
@@ -109,7 +99,6 @@ The launch file has the following parameters:
 
 /pico_flexx_camera_info_stream1
 /pico_flexx_camera_info_stream2
-/pico_flexx_depth_image
 /pico_flexx_depth_image_stream1
 /pico_flexx_depth_image_stream2
 /pico_flexx_gray_image_stream1
