@@ -1,0 +1,38 @@
+PicoFlexNode:
+      pico_flexx_driver:
+            ros__parameters:
+                  general:
+                        my_str: "Hello Cpp"
+                        my_int: 12
+                        my_double_array: [3.3, 4.4, 5.5]
+            # base_name: "pico_flexx"
+            # # ID of the sensor that should be used. IDs of all connected devices are listed on startup.
+            # sensor: ""
+            # # ID of the use case. A list of supported use cases is listed on startup. 
+            # use_case: 0
+            # # Enable or disable automatic exposure.
+            # automatic_exposure: True
+            # # Exposure time. Only for manual exposure. 
+            # exposure_time: 1000
+            # # Exposure mode (0 = manual, 1 = automatic) 
+            # exposure_mode: 1
+            # # Stream 2 Exposure time. Only for manual exposure. 
+            # exposure_time_stream2: 1000
+            # # Stream 2 Exposure mode (0 = manual, 1 = automatic) 
+            # exposure_mode_stream2: 1
+            # # Maximum allowed noise. Data with higher noise will be filtered out. 
+            # max_noise: 0.07
+            # # Filter level (0 = Off, 200 = Legacy, 255 = Full) 
+            # filter_level: 200
+            # # Range of the 16-Bit mono image which should be mapped to the 0-255 range of the 8-Bit mono image. The resulting range is `range_factor` times the standard deviation arround mean. 
+            # range_factor: 2.0
+            # # Queue size for publisher. 
+            # queue_size: 5
+            # # Publish a static TF transform for the optical frame of the camera. 
+            # publish_tf: False
+            # # Base name of the tf frames. 
+            # base_name_tf: "$(arg base_name)"
+            # # Machine on with the nodes should run. 
+            # machine: "localhost"
+            # # Whether the machine for localhost should be defined our not. Disable this if the launch file is included somewhere where machines are already defined. 
+            # define_machine: True
