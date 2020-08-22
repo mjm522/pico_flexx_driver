@@ -97,16 +97,16 @@ The launch file has the following parameters:
 
 #### Topics
 
-/pico_flexx_camera_info_stream1
-/pico_flexx_camera_info_stream2
-/pico_flexx_depth_image_stream1
-/pico_flexx_depth_image_stream2
-/pico_flexx_gray_image_stream1
-/pico_flexx_gray_image_stream2
-/pico_flexx_point_cloud_stream1
-/pico_flexx_point_cloud_stream2
-/pico_flexx_update_fps_stream1
-/pico_flexx_update_fps_stream2
+1. /pico_flexx_camera_info_stream1
+2. /pico_flexx_camera_info_stream2
+3. /pico_flexx_depth_image_stream1
+4. /pico_flexx_depth_image_stream2
+5. /pico_flexx_gray_image_stream1
+6. /pico_flexx_gray_image_stream2
+7. /pico_flexx_point_cloud_stream1
+8. /pico_flexx_point_cloud_stream2
+9. /pico_flexx_update_fps_stream1
+10. /pico_flexx_update_fps_stream2
 
 <!-- When a mixed mode use case is selected, the second stream for all topics below
 is published under the `stream2` namespace (e.g.,
