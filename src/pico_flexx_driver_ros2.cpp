@@ -68,14 +68,8 @@ public:
     _ros_clock(RCL_ROS_TIME),
     cameraDevice (nullptr)
 {
-    config.exposureTime = 0;
-    config.grayDivisor = 100;
-    config.minFilter = 0.0f;
-    config.maxFilter = 7.5f;
-
+    PicoStream* stream1 = new PicoStream();
     stream1->nFrames = 0;
-    stream2->nFrames = 0;
-
     rclcpp::Parameter paramVal;
     this->get_parameter_or("base_name", paramVal, rclcpp::Parameter("base_name", "pico_flexx_camera_optical_frame"));
     config.baseName = paramVal.as_string();
@@ -83,30 +77,40 @@ public:
     config.sensor = paramVal.as_string();
     this->get_parameter_or("use_case", paramVal, rclcpp::Parameter("use_case", 0));
     config.useCase = paramVal.as_int();
-    
+    //stream1 specific
     this->get_parameter_or("automatic_exposure", paramVal, rclcpp::Parameter("automatic_exposure", true));
     stream1->autoExposure = paramVal.as_bool();
     this->get_parameter_or("exposure_time", paramVal, rclcpp::Parameter("exposure_time", 1000));
     stream1->exposureTime = (uint32_t)paramVal.as_int();
     this->get_parameter_or("exposure_mode", paramVal, rclcpp::Parameter("exposure_mode", 1));
     stream1->exposureMode = paramVal.as_int();
-    //stream1 specific
-    this->get_parameter_or("automatic_exposure2", paramVal, rclcpp::Parameter("automatic_exposure2", true));
-    stream2->autoExposure = paramVal.as_bool();
-    this->get_parameter_or("exposure_time_stream2", paramVal, rclcpp::Parameter("exposure_time_stream2", 1000));
-    stream2->exposureTime = (uint32_t)paramVal.as_int();
-    this->get_parameter_or("exposure_mode_stream2", paramVal, rclcpp::Parameter("exposure_mode_stream2", 1));
-    stream2->exposureMode = paramVal.as_int();
-    //stream2 specific
     this->get_parameter_or("max_noise", paramVal, rclcpp::Parameter("max_noise", 0.07));
     config.maxNoise = paramVal.as_double();
     this->get_parameter_or("filter_level", paramVal, rclcpp::Parameter("filter_level", 200));
     config.filterLevel = paramVal.as_int();
     this->get_parameter_or("range_factor", paramVal, rclcpp::Parameter("range_factor", 2));
     config.rangeFactor = paramVal.as_double();
-    
     this->get_parameter_or("queue_size", paramVal, rclcpp::Parameter("queue_size", 5));
     config.queueSize = (int)paramVal.as_int();
+    if (config.useCase == 6 || config.useCase == 7)
+    {   
+        stream2Exists = true;
+        PicoStream* stream2 = new PicoStream();
+        stream2->nFrames = 0;
+        //stream2 specific
+        this->get_parameter_or("automatic_exposure2", paramVal, rclcpp::Parameter("automatic_exposure2", true));
+        stream2->autoExposure = paramVal.as_bool();
+        this->get_parameter_or("exposure_time_stream2", paramVal, rclcpp::Parameter("exposure_time_stream2", 1000));
+        stream2->exposureTime = (uint32_t)paramVal.as_int();
+        this->get_parameter_or("exposure_mode_stream2", paramVal, rclcpp::Parameter("exposure_mode_stream2", 1));
+        stream2->exposureMode = paramVal.as_int();
+    }
+    else
+    {stream2Exists = false;}
+    config.exposureTime = 0;
+    config.grayDivisor = 100;
+    config.minFilter = 0.0f;
+    config.maxFilter = 7.5f;
 }
 
 virtual ~RoyaleInRos2Node()
@@ -119,13 +123,14 @@ virtual void onInit()
     stream1->pubDepth = this->create_publisher<sensor_msgs::msg::Image> ("pico_flexx_depth_image_stream1", 1);
     stream1->pubGray = this->create_publisher<sensor_msgs::msg::Image> ("pico_flexx_gray_image_stream1", 1);
     stream1->pubFps = this->create_publisher<std_msgs::msg::String> ("pico_flexx_update_fps_stream1", 1);
-
-    stream2->pubCameraInfo = this->create_publisher<sensor_msgs::msg::CameraInfo> ("pico_flexx_camera_info_stream2", 1);
-    stream2->pubPointCloud = this->create_publisher<sensor_msgs::msg::PointCloud2> ("pico_flexx_point_cloud_stream2", 1);
-    stream2->pubDepth = this->create_publisher<sensor_msgs::msg::Image> ("pico_flexx_depth_image_stream2", 1);
-    stream2->pubGray = this->create_publisher<sensor_msgs::msg::Image> ("pico_flexx_gray_image_stream2", 1);
-    stream2->pubFps = this->create_publisher<std_msgs::msg::String> ("pico_flexx_update_fps_stream2", 1);
-
+    if (stream2Exists)
+    {
+        stream2->pubCameraInfo = this->create_publisher<sensor_msgs::msg::CameraInfo> ("pico_flexx_camera_info_stream2", 1);
+        stream2->pubPointCloud = this->create_publisher<sensor_msgs::msg::PointCloud2> ("pico_flexx_point_cloud_stream2", 1);
+        stream2->pubDepth = this->create_publisher<sensor_msgs::msg::Image> ("pico_flexx_depth_image_stream2", 1);
+        stream2->pubGray = this->create_publisher<sensor_msgs::msg::Image> ("pico_flexx_gray_image_stream2", 1);
+        stream2->pubFps = this->create_publisher<std_msgs::msg::String> ("pico_flexx_update_fps_stream2", 1);
+    }
     start();
 }
 
@@ -133,8 +138,10 @@ void start()
 {
 
     stream1->fpsProcess = std::thread(&RoyaleInRos2Node::fpsUpdate, this, RoyaleInRos2Node::stream1);
-    stream2->fpsProcess = std::thread(&RoyaleInRos2Node::fpsUpdate, this, RoyaleInRos2Node::stream2);
-
+    if(stream2Exists)
+    {
+        stream2->fpsProcess = std::thread(&RoyaleInRos2Node::fpsUpdate, this, RoyaleInRos2Node::stream2);
+    }
     // Create a camera manager and query available cameras
     royale::CameraManager manager;
     royale::Vector<royale::String>cameraList(manager.getConnectedCameraList());
@@ -147,7 +154,7 @@ void start()
 
     // Create the first camera that was found, register a data listener
     // and start the capturing
-    cameraDevice = manager.createCamera (cameraList[0]);
+    cameraDevice = manager.createCamera(cameraList[0]);
 
     royale::String cameraName;
     std::string info = "Opened camera : ";
@@ -164,7 +171,7 @@ void start()
         RCLCPP_INFO(logger_, "Camera got initialized successfully :)");
     }
 
-    if(!setUseCase( (size_t)RoyaleInRos2Node::config.useCase ))
+    if(!setUseCase((size_t)RoyaleInRos2Node::config.useCase ))
     {
          RCLCPP_INFO(logger_, "Failed to set the use case");
          return; 
@@ -243,10 +250,13 @@ void stop()
         RCLCPP_ERROR(logger_, "Error stopping camera capture!");
         return;
     }
-    delete stream1;
-    delete stream2;
     stream1->fpsProcess.join();
-    stream2->fpsProcess.join();
+    delete stream1;
+    if(stream2Exists)
+    {
+        stream2->fpsProcess.join();
+        delete stream2;
+    }
 }
 
 private:
@@ -367,8 +377,8 @@ void publishStream(const royale::DepthData *data, PicoStream *stream)
         }
 
         // Set divisor of gray image to adjust the brightness
-        uint16_t clampedVal = std::min (config.grayDivisor, currentPoint.grayValue);
-        int newGrayValue = std::min (254, static_cast<int> (254 * 1.f * (float) clampedVal / (float) config.grayDivisor));
+        uint16_t clampedVal = std::min(config.grayDivisor, currentPoint.grayValue);
+        int newGrayValue = std::min(254, static_cast<int> (254 * 1.f * (float) clampedVal / (float) config.grayDivisor));
 
         if (newGrayValue < 0)
         {
@@ -408,7 +418,7 @@ void onNewData(const royale::DepthData *data)
 
 }
 
-void onNewExposure (const uint32_t newExposureTime)
+void onNewExposure(const uint32_t newExposureTime)
 {
     if (config.exposureTime == newExposureTime)
     {
@@ -420,7 +430,7 @@ void onNewExposure (const uint32_t newExposureTime)
 bool setCameraInfo()
 {
     royale::LensParameters lensParams;
-    if ((cameraDevice->getLensParameters (lensParams) == royale::CameraStatus::SUCCESS))
+    if ((cameraDevice->getLensParameters(lensParams) == royale::CameraStatus::SUCCESS))
     {
         if (lensParams.distortionRadial.size() != 3)
         {
@@ -484,7 +494,7 @@ void fpsUpdate(PicoStream* stream)
 {
     while (rclcpp::ok())
     { 
-        std::this_thread::sleep_for (std::chrono::seconds (1));
+        std::this_thread::sleep_for(std::chrono::seconds (1));
         std_msgs::msg::String msg;
         msg.data = std::to_string(stream->nFrames);
         stream->pubFps->publish(msg);
@@ -800,6 +810,7 @@ std::mutex lockStatus, lockData, lockTiming;
 int framesPerTiming;
 std::string baseNameTF;
 struct PicoFlexxConfig config;
+bool stream2Exists;
 PicoStream* stream1 = new PicoStream();
 PicoStream* stream2 = new PicoStream();
 
