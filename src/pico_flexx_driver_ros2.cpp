@@ -87,25 +87,26 @@ public:
     this->get_parameter_or("automatic_exposure", paramVal, rclcpp::Parameter("automatic_exposure", true));
     stream1->autoExposure = paramVal.as_bool();
     this->get_parameter_or("exposure_time", paramVal, rclcpp::Parameter("exposure_time", 1000));
-    stream1->exposureTime = paramVal.as_int();
+    stream1->exposureTime = (uint32_t)paramVal.as_int();
     this->get_parameter_or("exposure_mode", paramVal, rclcpp::Parameter("exposure_mode", 1));
     stream1->exposureMode = paramVal.as_int();
-    
+    //stream1 specific
     this->get_parameter_or("automatic_exposure2", paramVal, rclcpp::Parameter("automatic_exposure2", true));
     stream2->autoExposure = paramVal.as_bool();
     this->get_parameter_or("exposure_time_stream2", paramVal, rclcpp::Parameter("exposure_time_stream2", 1000));
-    stream2->exposureTime = paramVal.as_int();
+    stream2->exposureTime = (uint32_t)paramVal.as_int();
     this->get_parameter_or("exposure_mode_stream2", paramVal, rclcpp::Parameter("exposure_mode_stream2", 1));
     stream2->exposureMode = paramVal.as_int();
-    
+    //stream2 specific
     this->get_parameter_or("max_noise", paramVal, rclcpp::Parameter("max_noise", 0.07));
     config.maxNoise = paramVal.as_double();
     this->get_parameter_or("filter_level", paramVal, rclcpp::Parameter("filter_level", 200));
     config.filterLevel = paramVal.as_int();
     this->get_parameter_or("range_factor", paramVal, rclcpp::Parameter("range_factor", 2));
     config.rangeFactor = paramVal.as_double();
+    
     this->get_parameter_or("queue_size", paramVal, rclcpp::Parameter("queue_size", 5));
-    config.queueSize = paramVal.as_int();
+    config.queueSize = (int)paramVal.as_int();
 }
 
 virtual ~RoyaleInRos2Node()
@@ -242,6 +243,8 @@ void stop()
         RCLCPP_ERROR(logger_, "Error stopping camera capture!");
         return;
     }
+    delete stream1;
+    delete stream2;
     stream1->fpsProcess.join();
     stream2->fpsProcess.join();
 }
